@@ -10,6 +10,10 @@ type Machine = {
   isDisConnected: boolean; // check if the machine has been used or not
 }
 
+app.use(express.json());
+app.use('/api/v1/auth', );
+app.use('/api/v1/editor', );
+
 const CODE_EDITORS = [];
 // 1. create new machine and store the userId + machine + IP, increase the desied cap and return the Ip of the machine.
 app.post("/register", async (req: Request, res: Response) => {
