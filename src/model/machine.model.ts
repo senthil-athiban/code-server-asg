@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import machineState, { machineStatus } from "../config/machine";
 
 const machineSchema = new Schema({
     instanceId: {
@@ -13,13 +14,13 @@ const machineSchema = new Schema({
         trim: true,
         index: true
     },
+    // To represent the connection status b/w client and server
     state: {
         type: String,
-        enum: ["CONNECTED", "DISCONNECTED", "RECONNECTABLE"],
+        enum: [machineState.CONNNECTED, machineState.DISCONNECTED, machineState.READY_TO_CONNECT, machineState.RECONNECABLE],
         default: "DISCONNECTED"
     },
     user: {
-        required: true,
         ref: 'User',
         type: Schema.Types.ObjectId
     },
@@ -27,15 +28,16 @@ const machineSchema = new Schema({
         type: Date,
         default: Date.now
     },
+    // To represent the lifecycle of machine
     status: {
-        required: true,
-        enum: ["ACTIVE", "INACTIVE"]
+        type: String,
+        enum: [machineStatus.ACTIVE, machineStatus.IN_ACTIVE],
+        required: true
     }
 }, {
     timestamps: true 
 });
 
-// Optionally, add a TTL index if you want to automatically remove documents after a certain period
-machineSchema.index({ lastActiveAt: 1 }, { expireAfterSeconds: 300 });
+machineSchema.index({ lastActiveAt: 1 });
 
 export const Machine = model('Machine', machineSchema);
