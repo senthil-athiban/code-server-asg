@@ -8,6 +8,35 @@ const findMachineById = async (id: string) => await Machine.findById(id);
 const findMachineByUser = async (machineId: string, userId: string) =>
   await Machine.findOne({ _id: machineId, user: userId });
 
+const cleanupInactiveMachines = async () => {
+  const fiveMinutesAgo = new Date(Date.now() - 1 * 60 * 1000);
+  const machines = await Machine.find({
+    status: machineStatus.ACTIVE,
+    state: { $ne: machineState.DISCONNECTED },
+    lastActiveAt: { $lt: fiveMinutesAgo },
+  });
+
+  // TODO: run aws service to terminate the machines by bactch wise
+  
+  // after successfull termination, update the machines status to be inActive and state to be disconnected
+  const command = machines.map((machine) => ({
+    updateOne: {
+      filter: { _id: machine.id },
+      update: {
+        $set: {
+          status: machineStatus.IN_ACTIVE,
+          state: machineState.DISCONNECTED,
+        },
+      },
+    },
+  }));
+  const result = await Machine.bulkWrite(command);
+  console.log(
+    `Updated ${result.modifiedCount} machines to inactive status and disconnected`
+  );
+  return result;
+};
+
 const createMachine = async (userId: string) => {
   try {
     // 1. Create actual AWS instance via AWS service
@@ -42,7 +71,7 @@ const verifyExpiration = (lastActiveAt: NativeDate): Boolean => {
   const maxInactiveTime = 5 * 60 * 1000; // 5 mins
   const timeDifference = currDate - lastActivedAt;
   return timeDifference > maxInactiveTime;
-}
+};
 
 const validateBeforeConnect = async (userId: string, machineId: string) => {
   try {
@@ -54,7 +83,7 @@ const validateBeforeConnect = async (userId: string, machineId: string) => {
       );
     }
 
-    if(machine.status === machineStatus.IN_ACTIVE) {
+    if (machine.status === machineStatus.IN_ACTIVE) {
       throw new ApiError(
         403,
         "The machine has been terminated. Please create new machine"
@@ -62,7 +91,7 @@ const validateBeforeConnect = async (userId: string, machineId: string) => {
     }
 
     const isExpired = verifyExpiration(machine.lastActiveAt);
-  
+
     if (isExpired) {
       throw new ApiError(
         404,
@@ -74,17 +103,20 @@ const validateBeforeConnect = async (userId: string, machineId: string) => {
       {
         _id: machineId,
         user: userId,
-        status: machineStatus.ACTIVE
+        status: machineStatus.ACTIVE,
       },
       {
         lastActiveAt: new Date(),
-        state: machineState.CONNNECTED
+        state: machineState.CONNNECTED,
       },
       { new: true }
     );
 
-    if(!updatedMachine) {
-      throw new ApiError(500, "Failed to connect to the machine. Please try again")
+    if (!updatedMachine) {
+      throw new ApiError(
+        500,
+        "Failed to connect to the machine. Please try again"
+      );
     }
 
     return updatedMachine;
@@ -105,7 +137,7 @@ const terminateMachine = async (userId: string, machineId: string) => {
       );
 
     // add aws service to terminate the machine
-    
+
     await Machine.findOneAndUpdate(
       {
         _id: machineId,
@@ -162,11 +194,11 @@ const pingMachine = async (userId: string, machineId: string) => {
 
 const findMachinesByUser = async (userId: string) => {
   try {
-    const machines = await Machine.find({ user: userId }).sort({ 
-      createdAt: -1, // (newest first) 
-      status: 1      // (active first)
+    const machines = await Machine.find({ user: userId }).sort({
+      createdAt: -1, // (newest first)
+      status: 1, // (active first)
     });
-    
+
     return machines;
   } catch (error) {
     throw new ApiError(500, "Failed to retrieve machines");
@@ -180,5 +212,6 @@ export default {
   findMachineByUser,
   pingMachine,
   findMachinesByUser,
-  findMachineById
+  findMachineById,
+  cleanupInactiveMachines,
 };
