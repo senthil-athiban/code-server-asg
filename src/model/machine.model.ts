@@ -38,6 +38,4 @@ const machineSchema = new Schema({
     timestamps: true 
 });
 
-machineSchema.index({ lastActiveAt: 1 });
-
 export const Machine = model('Machine', machineSchema);
