@@ -1,9 +1,9 @@
 import jwt, { JsonWebTokenError, NotBeforeError, TokenExpiredError } from "jsonwebtoken";
 import moment from "moment";
-import { JWT_SECRET } from "../config/tokens";
 import Token from "../model/token.model";
 import tokenTypes from "../config/tokens";
 import ApiError from "../config/error";
+import { JWT_SECRET } from "../config/config";
 
 const saveToken = async (userId: string, token: string, tokenType: string, expires: any) => {
   const existingToken = await Token.findOne({user: userId, type: tokenType });
