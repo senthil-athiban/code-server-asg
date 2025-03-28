@@ -39,10 +39,8 @@ const cleanupInactiveMachines = async () => {
 
 const createMachine = async (userId: string) => {
   try {
-    // 1. Create actual AWS instance via AWS service
     const awsInstance = await awsService.createInstance();
 
-    // 2. Store machine metadata in our database
     const machine = await new Machine({
       instanceId: awsInstance.instanceId,
       ipAddress: awsInstance.ipAddress,
@@ -136,7 +134,7 @@ const terminateMachine = async (userId: string, machineId: string) => {
         "No machine was found with given Instance ID for the corresponding user"
       );
 
-    // add aws service to terminate the machine
+    // TODO: add aws service to terminate the machine
 
     await Machine.findOneAndUpdate(
       {
