@@ -18,7 +18,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@aws-sdk/client-auto-scaling": "^3.758.0",
+    "@aws-sdk/client-auto-scaling": "^3.777.0",
+    "@aws-sdk/client-ec2": "^3.777.0",
     "@sendgrid/mail": "^8.1.4",
     "@types/express": "^5.0.0",
     "bcryptjs": "^3.0.2",

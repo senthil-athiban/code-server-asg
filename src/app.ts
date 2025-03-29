@@ -14,9 +14,16 @@ import {
   TerminateInstanceInAutoScalingGroupCommand,
   UpdateAutoScalingGroupCommand,
 } from "@aws-sdk/client-auto-scaling";
-import { EC2Client, DescribeInstancesCommand, TerminateInstancesCommand } from "@aws-sdk/client-ec2";
+import {
+  EC2Client,
+  DescribeInstancesCommand,
+  TerminateInstancesCommand,
+} from "@aws-sdk/client-ec2";
 import { awsConfig } from "./config/config";
 import { registerCronJobs } from "./jobs";
+import { Machine } from "./model/machine.model";
+import machineState, { machineStatus } from "./config/machine";
+import ApiError from "./config/error";
 
 const app = express();
 app.use(morgan("dev"));
@@ -44,24 +51,30 @@ const ec2Client = new EC2Client({
   },
 });
 
-let idleMachines: any[] = [];
-let activeMachines = 0;
-let totalMachines = 0;
-
 app.get("/get/machine", async (req, res) => {
+  const idleMachines = await Machine.find({
+    state: machineState.READY_TO_CONNECT,
+    status: machineStatus.ACTIVE,
+  });
+
   if (idleMachines.length === 0) {
-    res.status(503).json({
-      error: "No machines available currently, please try again later",
-    });
+    throw new ApiError(503, "No machines available currently, please try again later");
   }
 
-  const machine = idleMachines.pop();
+  const newMachine = idleMachines.at(0);
 
-  activeMachines++;
+  if (!newMachine) return;
+  await Machine.findOneAndUpdate(
+    { instanceId: newMachine.instanceId },
+    {
+      state: machineState.CONNNECTED,
+      status: machineStatus.ACTIVE,
+    }
+  );
 
   await adjustCapacity();
 
-  res.status(200).send(machine);
+  res.status(200).send(newMachine);
 });
 
 app.post("/delete/machine/:machineId", async (req, res) => {
@@ -75,20 +88,20 @@ app.post("/delete/machine/:machineId", async (req, res) => {
   const detachCommand = new DetachInstancesCommand({
     AutoScalingGroupName: awsConfig.asgGroupName,
     InstanceIds: [instanceId],
-    ShouldDecrementDesiredCapacity: true
+    ShouldDecrementDesiredCapacity: true,
   });
+
   await asgClient.send(detachCommand);
 
-//   const terminateCommand = new TerminateInstanceInAutoScalingGroupCommand({})
-
   const terminateCommand = new TerminateInstancesCommand({
-    InstanceIds: [instanceId]
+    InstanceIds: [instanceId],
   });
 
   await ec2Client.send(terminateCommand);
-
-  
-  activeMachines--;
+  await Machine.findOneAndUpdate(
+    { instanceId: instanceId },
+    { state: machineState.DISCONNECTED, status: machineStatus.IN_ACTIVE }
+  );
 
   console.log(`Machine released: ${instanceId}`);
 
@@ -96,10 +109,18 @@ app.post("/delete/machine/:machineId", async (req, res) => {
 
   res.status(200).json({ success: true });
 });
+
 app.use(errorHanlder);
 
 const adjustCapacity = async () => {
-  const idealCapacity = activeMachines + IDEAL_POOL_SIZE; // or ( activeMachines + idleMachines + (POOL_SIZE - idleMachines))
+  const activeMachines = await Machine.countDocuments({
+    status: machineStatus.ACTIVE,
+    state: machineState.CONNNECTED,
+  });
+  const totalMachines = await Machine.countDocuments({
+    status: machineStatus.ACTIVE,
+  });
+  const idealCapacity = activeMachines + IDEAL_POOL_SIZE;
 
   // if expected cap size is same as total machine size, then return it, no need of scaling.
   if (idealCapacity === totalMachines) return;
@@ -124,6 +145,7 @@ const refreshMachineState = async () => {
   const command = new DescribeAutoScalingGroupsCommand({
     AutoScalingGroupNames: [awsConfig.asgGroupName],
   });
+
   try {
     const data = await asgClient.send(command);
     if (!data || !data.AutoScalingGroups) return;
@@ -134,12 +156,8 @@ const refreshMachineState = async () => {
       .filter((i) => i && i?.length > 0);
 
     if (!instanceIds || instanceIds.length === 0) {
-      idleMachines = [];
-      totalMachines = 0;
       return;
     }
-
-    totalMachines = instanceIds.length;
 
     const ec2Command = new DescribeInstancesCommand({
       InstanceIds: instanceIds,
@@ -161,11 +179,52 @@ const refreshMachineState = async () => {
       InstanceState: instance.State?.Name,
     }));
 
-    idleMachines = instanceDetails.slice(0, totalMachines - activeMachines);
+    const bulkCommand = instanceDetails.map((machine) => ({
+      updateOne: {
+        filter: {
+          instanceId: machine.InstanceId,
+        },
+        update: {
+          $set: {
+            lastActiveAt: new Date(),
+            instanceId: machine.InstanceId,
+            ipAddress: machine.PublicIpAddress,
+          },
+          $setOnInsert: {
+            state: machineState.READY_TO_CONNECT,
+            status: machineStatus.ACTIVE,
+            createdAt: new Date(),
+          },
+        },
+        upsert: true,
+      },
+    }));
 
-    console.log(
-      `Total: ${totalMachines}, Active: ${activeMachines}, Idle: ${idleMachines.length}`
+    if (bulkCommand.length > 0) {
+      await Machine.bulkWrite(bulkCommand);
+    }
+
+    const existingMachines = await Machine.find({
+      status: machineStatus.ACTIVE,
+    });
+    const existingInstanceIds = existingMachines.map((m) => m.instanceId);
+    const nonExistentInstanceIds = existingInstanceIds.filter(
+      (id) => !instanceIds.includes(id)
     );
+
+    if (nonExistentInstanceIds.length > 0) {
+      await Machine.updateMany(
+        { instanceId: { $in: nonExistentInstanceIds } },
+        {
+          state: machineState.DISCONNECTED,
+          status: machineStatus.IN_ACTIVE,
+          lastUpdated: new Date(),
+        }
+      );
+      console.log(
+        `Marked ${nonExistentInstanceIds.length} machines as disconnected`
+      );
+    }
 
     await adjustCapacity();
   } catch (error) {
