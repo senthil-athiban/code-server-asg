@@ -5,13 +5,11 @@ import connectDb from "./db/connect";
 import errorHanlder from "./middlewares/error";
 import { machineRouter } from "./routes/machine.router";
 import morgan from "morgan";
-import cron from "node-cron";
 import {
   AutoScalingClient,
   DescribeAutoScalingGroupsCommand,
   DetachInstancesCommand,
   SetDesiredCapacityCommand,
-  TerminateInstanceInAutoScalingGroupCommand,
   UpdateAutoScalingGroupCommand,
 } from "@aws-sdk/client-auto-scaling";
 import {
@@ -19,7 +17,7 @@ import {
   DescribeInstancesCommand,
   TerminateInstancesCommand,
 } from "@aws-sdk/client-ec2";
-import { awsConfig } from "./config/config";
+import { awsConfig, PORT } from "./config/config";
 import { registerCronJobs } from "./jobs";
 import { Machine } from "./model/machine.model";
 import machineState, { machineStatus } from "./config/machine";
@@ -246,8 +244,9 @@ const initialSetup = async () => {
     console.log("failed to setup aws:", error);
   }
 };
-app.listen(8080, async () => {
-  console.log("server started on PORT 3000");
+
+app.listen(PORT, async () => {
+  console.log(`server started on PORT ${PORT}`);
   await connectDb();
   registerCronJobs();
   await initialSetup();
