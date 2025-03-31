@@ -1,5 +1,42 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { 
+  AutoScalingClient,
+  DescribeAutoScalingGroupsCommand,
+  DetachInstancesCommand,
+  SetDesiredCapacityCommand,
+  UpdateAutoScalingGroupCommand,
+} from "@aws-sdk/client-auto-scaling";
+import {
+  EC2Client,
+  DescribeInstancesCommand,
+  TerminateInstancesCommand,
+} from "@aws-sdk/client-ec2";
+import { awsConfig } from "./config";
+
+const AWS_REGION = "ap-south-1";
+
+const awsCredentials = {
+  accessKeyId: awsConfig.accessKey,
+  secretAccessKey: awsConfig.secretKey,
+};
+
+export const asgClient = new AutoScalingClient({
+  region: AWS_REGION,
+  credentials: awsCredentials,
+});
+
+export const ec2Client = new EC2Client({
+  region: AWS_REGION,
+  credentials: awsCredentials,
+});
+
+
+export const ASG_CONFIG = {
+  groupName: awsConfig.asgGroupName,
+  idealPoolSize: 5,
+};
+
 // create machine and assign ip to user
 const createInstance = async () => {
   // mocking the machine details
