@@ -32,6 +32,7 @@ export const awsConfig = {
   accessKey: process.env.ACCESS_KEY!,
   secretKey: process.env.SECRET_KEY!,
   region: process.env.REGION!,
-  asgGroupName: process.env.ASG_GROUP!
+  asgGroupName: process.env.ASG_GROUP!,
+  idealPoolSize: process.env.ASG_POOL_SIZE!
 };
 

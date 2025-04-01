@@ -22,6 +22,7 @@ import { registerCronJobs } from "./jobs";
 import { Machine } from "./model/machine.model";
 import machineState, { machineStatus } from "./config/machine";
 import ApiError from "./config/error";
+import { asgClient, ec2Client } from "./services/aws.service";
 
 const app = express();
 app.use(morgan("dev"));
@@ -32,22 +33,6 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/machine", machineRouter);
 
 const IDEAL_POOL_SIZE = 5;
-
-const asgClient = new AutoScalingClient({
-  region: "ap-south-1",
-  credentials: {
-    accessKeyId: awsConfig.accessKey,
-    secretAccessKey: awsConfig.secretKey,
-  },
-});
-
-const ec2Client = new EC2Client({
-  region: "ap-south-1",
-  credentials: {
-    accessKeyId: awsConfig.accessKey,
-    secretAccessKey: awsConfig.secretKey,
-  },
-});
 
 app.get("/get/machine", async (req, res) => {
   const idleMachines = await Machine.find({
