@@ -187,6 +187,7 @@ const refreshMachineState = async () => {
       await Machine.bulkWrite(bulkCommand);
     }
 
+    // set the disconnected machines to be in idle state
     const existingMachines = await Machine.find({
       status: machineStatus.ACTIVE,
     });
