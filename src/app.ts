@@ -3,7 +3,7 @@ import { authRouter } from "./routes/auth.route";
 import { userRouter } from "./routes/user.route";
 import connectDb from "./db/connect";
 import errorHanlder from "./middlewares/error";
-import { machineRouter } from "./routes/machine.router";
+import { machineRouter } from "./routes/machine.route";
 import morgan from "morgan";
 import {
   AutoScalingClient,
@@ -23,8 +23,20 @@ import { Machine } from "./model/machine.model";
 import machineState, { machineStatus } from "./config/machine";
 import ApiError from "./config/error";
 import { asgClient, ec2Client } from "./services/aws.service";
+import { Server } from "socket.io";
+import { createServer } from "http";
 
 const app = express();
+const httpServer = createServer()
+const io = new Server(httpServer, {});
+
+io.on("connection", (socket) => {
+  console.log('connection established')
+});
+
+io.listen(3000);
+
+
 app.use(morgan("dev"));
 
 app.use(express.json());
@@ -231,9 +243,9 @@ const initialSetup = async () => {
   }
 };
 
-app.listen(PORT, async () => {
+httpServer.listen(PORT, async () => {
   console.log(`server started on PORT ${PORT}`);
   await connectDb();
   registerCronJobs();
-  await initialSetup();
+  // await initialSetup();
 });
