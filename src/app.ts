@@ -46,64 +46,6 @@ app.use("/api/v1/machine", machineRouter);
 
 const IDEAL_POOL_SIZE = 5;
 
-app.get("/get/machine", async (req, res) => {
-  const idleMachines = await Machine.find({
-    state: machineState.READY_TO_CONNECT,
-    status: machineStatus.ACTIVE,
-  });
-
-  if (idleMachines.length === 0) {
-    throw new ApiError(503, "No machines available currently, please try again later");
-  }
-
-  const newMachine = idleMachines.at(0);
-
-  if (!newMachine) return;
-  await Machine.findOneAndUpdate(
-    { instanceId: newMachine.instanceId },
-    {
-      state: machineState.CONNNECTED,
-      status: machineStatus.ACTIVE,
-    }
-  );
-
-  await adjustCapacity();
-
-  res.status(200).send(newMachine);
-});
-
-app.post("/delete/machine/:machineId", async (req, res) => {
-  const instanceId = req.params.machineId;
-
-  if (!instanceId) {
-    res.status(400).send({ error: "Instance ID is missing" });
-    return;
-  }
-
-  const detachCommand = new DetachInstancesCommand({
-    AutoScalingGroupName: awsConfig.asgGroupName,
-    InstanceIds: [instanceId],
-    ShouldDecrementDesiredCapacity: true,
-  });
-
-  await asgClient.send(detachCommand);
-
-  const terminateCommand = new TerminateInstancesCommand({
-    InstanceIds: [instanceId],
-  });
-
-  await ec2Client.send(terminateCommand);
-  await Machine.findOneAndUpdate(
-    { instanceId: instanceId },
-    { state: machineState.DISCONNECTED, status: machineStatus.IN_ACTIVE }
-  );
-
-  console.log(`Machine released: ${instanceId}`);
-
-  await refreshMachineState();
-
-  res.status(200).json({ success: true });
-});
 
 app.use(errorHanlder);
 
