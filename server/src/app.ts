@@ -21,21 +21,13 @@ import { awsConfig, PORT } from "./config/config";
 import { registerCronJobs } from "./jobs";
 import { Machine } from "./model/machine.model";
 import machineState, { machineStatus } from "./config/machine";
-import ApiError from "./config/error";
 import { asgClient, ec2Client } from "./services/aws.service";
-import { Server } from "socket.io";
+
 import { createServer } from "http";
+import { initWebScoket } from "./services/ws";
 
 const app = express();
 const httpServer = createServer()
-const io = new Server(httpServer, {});
-
-io.on("connection", (socket) => {
-  
-});
-
-io.listen(3000);
-
 
 app.use(morgan("dev"));
 
@@ -45,7 +37,6 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/machine", machineRouter);
 
 const IDEAL_POOL_SIZE = 5;
-
 
 app.use(errorHanlder);
 
@@ -184,6 +175,8 @@ const initialSetup = async () => {
     console.log("failed to setup aws:", error);
   }
 };
+
+initWebScoket(httpServer);
 
 httpServer.listen(PORT, async () => {
   console.log(`server started on PORT ${PORT}`);

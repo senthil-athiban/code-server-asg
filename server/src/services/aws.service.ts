@@ -4,6 +4,7 @@ import {
   AutoScalingClient,
   DetachInstancesCommand,
 } from "@aws-sdk/client-auto-scaling";
+import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";
 import { EC2Client, TerminateInstancesCommand } from "@aws-sdk/client-ec2";
 import { awsConfig } from "../config/config";
 import { Machine } from "../model/machine.model";
@@ -23,6 +24,11 @@ export const asgClient = new AutoScalingClient({
 export const ec2Client = new EC2Client({
   region: awsConfig.region,
   credentials: awsCredentials,
+});
+
+export const s3Client = new S3Client({
+  region: awsConfig.region,
+  credentials: awsCredentials
 });
 
 const createInstance = async () => {
