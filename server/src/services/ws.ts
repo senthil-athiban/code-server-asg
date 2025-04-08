@@ -13,7 +13,7 @@ const initWebScoket = (server: HttpServer) => {
     io.on("connection", (socket) => {
         console.log('Socket io connection established');
 
-        socket.on('projectId', async (projectId) => {
+        socket.on('project', async (projectId) => {
             await getFilesFromS3(projectId);
         })
     });

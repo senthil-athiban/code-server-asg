@@ -5,8 +5,6 @@ import {
 } from "@aws-sdk/client-s3";
 import { s3Client } from "../services/aws.service";
 import { awsConfig } from "../config/config";
-import * as fs from 'fs';
-import * as path from 'path';
 import { Readable } from 'stream';
 
 const copyBaseCode = async (source: string, destination: string) => {
@@ -69,8 +67,6 @@ const getFilesFromS3 = async (projectId: string) => {
     });
 
     const res = await s3Client.send(getCommand);
-
-    const bodyContents = await streamToBuffer(response.Body as Readable);
     
   })
 }
