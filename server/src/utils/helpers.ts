@@ -65,8 +65,6 @@ const getFilesFromS3 = async (projectId: string) => {
       Bucket: awsConfig.s3Bucket,
       Key: sourceKey
     });
-
-    const res = await s3Client.send(getCommand);
     
   })
 }
