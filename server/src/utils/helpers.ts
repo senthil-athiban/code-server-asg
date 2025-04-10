@@ -5,7 +5,6 @@ import {
 } from "@aws-sdk/client-s3";
 import { s3Client } from "../services/aws.service";
 import { awsConfig } from "../config/config";
-import { Readable } from 'stream';
 
 const copyBaseCode = async (source: string, destination: string) => {
   const getObjectCommand = new ListObjectsV2Command({
