@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { s3Client } from "../services/aws.service";
 import { awsConfig } from "../config/config";
+import ApiError from "../config/error";
 
 const copyBaseCode = async (source: string, destination: string) => {
   const getObjectCommand = new ListObjectsV2Command({
@@ -41,8 +42,8 @@ const copyBaseCode = async (source: string, destination: string) => {
     });
 
     await Promise.all(copyPromises);
-  } catch (error) {
-    console.log("failed to copy:", error);
+  } catch (error:any) {
+    throw new ApiError(500, "Failed to copy files", error);
   }
 };
 
