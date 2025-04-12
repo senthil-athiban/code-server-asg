@@ -19,8 +19,8 @@ const copyBaseCode = async (source: string, destination: string) => {
     const res = await s3Client.send(getObjectCommand);
     contents = res.Contents;
 
-  } catch (error) {
-    console.log('failed to fetch s3Contents:', error);
+  } catch (error:any) {
+    throw new ApiError(500, "Failed to copy files", error);
   }
 
   if (!contents || contents.length === 0) return;
