@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "NODE_ENV=development bun --hot src/app.ts",
-    "prod": "NODE_ENV=production bun --hot src/app.ts"
+    "prod": "NODE_ENV=production bun --hot src/app.ts",
+    "watch": "NODE_ENV=development bun --watch src/app.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

@@ -24,7 +24,6 @@ const loginEmailAndPassword = async (email: string, password: string) => {
     if (error instanceof ApiError) {
       throw error;
     }
-    
     throw new ApiError(500, "Authentication failed due to server error");
   }
 };

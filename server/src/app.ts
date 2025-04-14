@@ -27,7 +27,7 @@ import { createServer } from "http";
 import { initWebScoket } from "./services/ws";
 
 const app = express();
-const httpServer = createServer()
+const httpServer = createServer(app)
 
 app.use(morgan("dev"));
 

@@ -1,6 +1,6 @@
 import { registerMachineCleanupJob } from "./machine-cleanup.job"
 
 export const registerCronJobs = () => {
-    registerMachineCleanupJob();
+    // registerMachineCleanupJob();
     console.log('All cron jobs registered');
 }
