@@ -182,9 +182,7 @@ initWebScoket(httpServer);
 httpServer.listen(PORT, async () => {
   console.log(`server started on PORT ${PORT}`);
   await connectDb();
-  const res = await fetchDir('nice', '1');
-  console.log('res:', res)
-  await updateFileContent('1',res[0].path, 'added else content');
+  
   // const fileRes = await fetchFileContent(res[0]?.path, '1');
   // console.log('fileRes:', fileRes)
   // registerCronJobs();

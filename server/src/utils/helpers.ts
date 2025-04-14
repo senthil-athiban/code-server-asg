@@ -2,6 +2,7 @@ import {
   CopyObjectCommand,
   GetObjectCommand,
   ListObjectsV2Command,
+  PutObjectCommand,
   type _Object,
 } from "@aws-sdk/client-s3";
 import { s3Client } from "../services/aws.service";
@@ -96,8 +97,23 @@ const getFilesFromS3 = async (projectId: string) => {
     writeFileWithDirs(filePath, fileContent!);
 
   }));
+}
 
-  
+const updateFileToS3 = async (projectId: string, filePath: string, content: string) => {
+  const key = `user-code/${projectId}/${filePath}`;
+  console.log('ext:', getContentType(filePath))
+  try {
+    const command = new PutObjectCommand({
+      Bucket: awsConfig.s3Bucket,
+      Key: key,
+      Body: content,
+      ContentType: getContentType(filePath)
+    });
+    const res = await s3Client.send(command);
+    console.log('res:', res);
+  } catch (error) {
+    console.log('failed to update file content in s3');
+  }
 }
 
 const createFolder = async (dirName: string) => {
@@ -125,4 +141,25 @@ const writeFileWithDirs = async (filePath: string, fileContent: string) => {
   }
 };
 
-export { copyBaseCode, getFilesFromS3 };
+const getContentType = (filePath: string) => {
+  const ext = path.extname(filePath).toLowerCase();
+  const contentTypes: Record<string, string> = {
+      '.html': 'text/html',
+      '.css': 'text/css',
+      '.js': 'application/javascript',
+      '.json': 'application/json',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+      '.txt': 'text/plain',
+      '.md': 'text/markdown',
+      '.xml': 'application/xml',
+      '.pdf': 'application/pdf'
+  };
+  
+  return contentTypes[ext] || 'text/plain';
+};
+
+export { copyBaseCode, getFilesFromS3, updateFileToS3 };
