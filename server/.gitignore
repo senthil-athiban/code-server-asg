@@ -6,6 +6,8 @@ out
 dist
 *.tgz
 
+projects
+
 # code coverage
 coverage
 *.lcov
