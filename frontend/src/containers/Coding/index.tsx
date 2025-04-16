@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import useSocket from '../../hooks/useSocket'
 import { useParams } from 'react-router-dom'
 import FilePanel from '../../components/editor/file-panel';
+import { File } from '../../utils/file-manager';
 
 const CodingPage = () => {
   const { projectId } = useParams();
-  const [files, setfiles] = useState([]);
+  const [files, setfiles] = useState<Array<File>>([]);
   const socket = useSocket(projectId as string);
 
   useEffect(() => {
-    if(!socket) return;
-    socket.on('project', (data) => {  
-      console.log('Project data:', data);
+    if (!socket) return;
+    socket.on('project', (data) => {
       setfiles(data.root);
-    }
-    )
-  },[socket])
+    });
+  }, [socket]);
+
   return (
-    <div><FilePanel /></div>
+    <><FilePanel files={files} setfiles={setfiles} socket={socket} /></>
   )
 }
 

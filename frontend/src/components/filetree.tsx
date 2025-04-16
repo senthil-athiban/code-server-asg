@@ -20,6 +20,7 @@ interface SubTreeProps {
 }
 
 const SubTree = (props: SubTreeProps) => {
+ 
   return (
     <div>
       {
@@ -97,13 +98,19 @@ const DirDiv = ({directory, selectedFile, onSelect}: {
   if (selectedFile)
     defaultOpen = isChildSelected(directory, selectedFile)
   const [open, setOpen] = useState(defaultOpen);
+  
   return (
     <>
       <FileDiv
         file={directory}
         icon={open ? "openDirectory" : "closedDirectory"}
         selectedFile={selectedFile}
-        onClick={() => setOpen(!open)}/>
+        onClick={() => {
+          if(!open) {
+            onSelect(directory)
+          }
+          setOpen(!open)
+        }}/>
       {
         open ? (
           <SubTree

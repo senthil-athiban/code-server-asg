@@ -3,7 +3,11 @@ import Editor from "@monaco-editor/react";
 import styled from "@emotion/styled";
 import { File } from '../../utils/file-manager';
 
-export const Code = ({selectedFile}: { selectedFile: File | undefined }) => {
+interface CodeProps {
+  selectedFile: File | undefined;
+  updateFile: (value: string) => void;
+}
+export const Code = ({ selectedFile, updateFile }: CodeProps) => {
   if (!selectedFile)
     return null
 
@@ -15,6 +19,10 @@ export const Code = ({selectedFile}: { selectedFile: File | undefined }) => {
   else if (language === "ts" || language === "tsx")
     language = "typescript"
 
+  
+
+  console.log('selected file:', selectedFile.content);
+
   return (
     <Div>
       <Editor
@@ -22,6 +30,7 @@ export const Code = ({selectedFile}: { selectedFile: File | undefined }) => {
         language={language}
         value={code}
         theme="vs-dark"
+        onChange={(val) => updateFile(val)}
       />
     </Div>
   )
