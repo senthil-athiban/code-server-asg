@@ -1,20 +1,20 @@
 export enum Type {
-  FILE, // 文件
-  DIRECTORY, // 目录
-  DUMMY // 虚拟文件（用于未成功获取到文件时展示）
+  FILE
+  DIRECTORY
+  DUMM
 }
 
 interface CommonProps {
-  id: string; // 文件id
-  type: Type; // 文件类型
-  name: string; // 名称
+  id: string
+  type: Type
+  name: string
   path: string;
-  parentId: string | undefined; // 父级目录，如果为根目录则undefined
-  depth: number; // 文件深度
+  parentId: string | undefined
+  depth: number
 }
 
 export interface File extends CommonProps {
-  content?: string; // 文件内容
+  content?: string
 }
 
 export interface Directory extends CommonProps {
@@ -34,7 +34,7 @@ export function buildFileTree(data: any): Directory {
   const files = data?.filter((i: CustomFile) => !i.isDirectory);
   const dirs = data?.filter((i: CustomFile) => i.isDirectory);
   
-  const cache = new Map<string, Directory | File>(); // 缓存
+  const cache = new Map<string, Directory | File>()
   
   let rootDir: Directory = {
     id: "root",
@@ -47,7 +47,6 @@ export function buildFileTree(data: any): Directory {
     files: []
   };
 
-  // 将<id，目录对象>存入map
   dirs.forEach((item: CustomFile) => {
     const file = item.path.split("/").slice(0, -1).join("/")
     let dir: Directory = {
@@ -63,7 +62,6 @@ export function buildFileTree(data: any): Directory {
 
     cache.set(dir.id, dir);
   });
-  // 将<id，文件对象>存入map
   files.forEach((item: CustomFile) => {
     const parentFilePath = item.path.split("/").slice(0, -1).join("/")
     let file: File = {
