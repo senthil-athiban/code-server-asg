@@ -25,11 +25,11 @@ import { asgClient, ec2Client } from "./services/aws.service";
 
 import { createServer } from "http";
 import { initWebScoket } from "./services/ws";
-
+import cors from "cors";
 
 const app = express();
 const httpServer = createServer(app)
-
+app.use(cors({origin: "*"}));
 app.use(morgan("dev"));
 
 app.use(express.json());

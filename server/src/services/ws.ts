@@ -21,15 +21,14 @@ const initWebScoket = (server: HttpServer) => {
         }
     });
 
-    io.on("connection", (socket) => {
+    io.on("connection", async (socket) => {
         const projectId = socket.handshake.query.projectId as string;
         console.log(`Socket io connection has been established for projectId: ${projectId}`);
         
-
-        socket.on('project', async (projectId) => {
-            await getFilesFromS3(projectId);
+        await getFilesFromS3(projectId);
+        socket.emit('project', {
+            root: await fetchDir(projectId,"")
         });
-
        
         fileHandlers(projectId, socket);
         
@@ -53,6 +52,7 @@ const fileHandlers = (projectId: string, socket: Socket<DefaultEventsMap, Defaul
     socket.on("fetchFile", async (filePath: string) => {
         try {
             const content = await fetchFileContent(projectId, filePath);
+            console.log('content:', content);
             socket.emit('fileContent', { path: filePath, content, success: true });
         } catch (error) {
             socket.emit('fileContent', { path: filePath, success: false, error: 'Failed to fetch file' });
