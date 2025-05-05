@@ -1,7 +1,6 @@
 export enum Type {
-  FILE
+  FILE,
   DIRECTORY
-  DUMM
 }
 
 interface CommonProps {
@@ -31,8 +30,8 @@ interface CustomFile {
 
 export function buildFileTree(data: any): Directory {
   
-  const files = data?.filter((i: CustomFile) => !i.isDirectory);
-  const dirs = data?.filter((i: CustomFile) => i.isDirectory);
+  const files = data?.filter((i: CustomFile) => i?.type === "file");;
+  const dirs = data?.filter((i: CustomFile) => i?.type === "directory");
   
   const cache = new Map<string, Directory | File>()
   
