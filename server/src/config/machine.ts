@@ -1,5 +1,5 @@
 
-const machineState = {
+export const machineState = {
     CONNNECTED: "CONNECTED",
     DISCONNECTED: "DISCONNECTED",
     RECONNECABLE: "RECONNECTABLE",
@@ -10,5 +10,3 @@ export const machineStatus = {
     ACTIVE: "active",
     IN_ACTIVE: "inActive"
 }
-
-export default machineState

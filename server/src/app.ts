@@ -20,12 +20,12 @@ import {
 import { awsConfig, PORT } from "./config/config";
 import { registerCronJobs } from "./jobs";
 import { Machine } from "./model/machine.model";
-import machineState, { machineStatus } from "./config/machine";
+import {machineState,  machineStatus } from "./config/machine";
 import { asgClient, ec2Client } from "./services/aws.service";
 
 import { createServer } from "http";
 import { initWebScoket } from "./services/ws";
-import { fetchDir, fetchFileContent, updateFileContent } from "./utils/file";
+
 
 const app = express();
 const httpServer = createServer(app)

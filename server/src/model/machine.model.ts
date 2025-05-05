@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import machineState, { machineStatus } from "../config/machine";
+import { machineState,  machineStatus } from "../config/machine";
 
 const machineSchema = new Schema({
     instanceId: {

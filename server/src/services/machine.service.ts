@@ -1,5 +1,5 @@
 import ApiError from "../config/error";
-import machineState, { machineStatus } from "../config/machine";
+import { machineState, machineStatus } from "../config/machine";
 import { Machine } from "../model/machine.model";
 import awsService from "./aws.service";
 
@@ -42,8 +42,8 @@ const createMachine = async (userId: string) => {
     const awsInstance = await awsService.createInstance();
 
     const machine = await new Machine({
-      instanceId: awsInstance.instanceId,
-      ipAddress: awsInstance.ipAddress,
+      instanceId: awsInstance?.instanceId,
+      ipAddress: awsInstance?.ipAddress,
       state: machineState.READY_TO_CONNECT,
       user: userId,
       status: machineStatus.ACTIVE,

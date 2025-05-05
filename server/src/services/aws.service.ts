@@ -8,7 +8,7 @@ import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";
 import { EC2Client, TerminateInstancesCommand } from "@aws-sdk/client-ec2";
 import { awsConfig } from "../config/config";
 import { Machine } from "../model/machine.model";
-import machineState, { machineStatus } from "../config/machine";
+import { machineState, machineStatus } from "../config/machine";
 import ApiError from "../config/error";
 
 const awsCredentials = {
